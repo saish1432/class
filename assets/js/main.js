@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please pay ₹99 via UPI and send payment screenshot to our WhatsApp help number. We will activate your video access within 30 minutes.');
                 
                 // Redirect to WhatsApp for payment confirmation
-                const whatsappNumber = '<?php echo $settings['whatsapp_number'] ?? '+919876543210'; ?>';
+                const whatsappNumber = '<?php echo $settings[\'whatsapp_number'] ?? '+919876543210'; ?>';
                 const whatsappMessage = `I have made payment of ₹99 for video ID: ${videoId}. Please activate my access.\n\nMy registered email: <?php echo $_SESSION['user_email'] ?? ''; ?>`;
                 const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
                 window.open(whatsappURL, '_blank');
