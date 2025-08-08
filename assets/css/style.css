@@ -275,10 +275,18 @@ body {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    background: var(--bg-primary);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     overflow: hidden;
     padding-top: 80px;
+    animation: gradientShift 8s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    25% { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    50% { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    75% { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
 }
 
 .hero-background {
@@ -296,8 +304,28 @@ body {
 .floating-icons i {
     position: absolute;
     font-size: 3rem;
-    animation: float 6s ease-in-out infinite;
+    animation: float 6s ease-in-out infinite, pulse 2s ease-in-out infinite alternate;
     opacity: 0.3;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.3; }
+    100% { transform: scale(1.2); opacity: 0.6; }
+}
+
+.floating-icons i::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: ripple 3s ease-out infinite;
+}
+
+@keyframes ripple {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
 }
 
 .floating-icons i:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }

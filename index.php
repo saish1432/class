@@ -17,6 +17,19 @@ $training_videos = $pdo->query("SELECT * FROM videos WHERE type = 'training' AND
 // Get recorded lectures
 $recorded_lectures = $pdo->query("SELECT * FROM videos WHERE type = 'recorded' AND status = 'active' ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
 
+// Check if user is logged in to show video access
+$user_videos = [];
+if (isset($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare("
+        SELECT v.id 
+        FROM videos v 
+        JOIN assigned_videos av ON v.id = av.video_id 
+        WHERE av.user_id = ? AND av.status = 'active' AND av.expiry_date > NOW()
+    ");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user_videos = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
+}
+
 // Get approved testimonials
 $testimonials = $pdo->query("SELECT * FROM testimonials WHERE status = 'approved' ORDER BY id DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -64,11 +77,14 @@ $testimonials = $pdo->query("SELECT * FROM testimonials WHERE status = 'approved
     <section id="home" class="hero">
         <div class="hero-background">
             <div class="floating-icons">
-                <i class="fas fa-book-open"></i>
-                <i class="fas fa-microscope"></i>
-                <i class="fas fa-calculator"></i>
-                <i class="fas fa-atom"></i>
-                <i class="fas fa-flask"></i>
+                <i class="fas fa-chalkboard-teacher" title="Online Classes"></i>
+                <i class="fas fa-users" title="Students"></i>
+                <i class="fas fa-laptop" title="E-Learning"></i>
+                <i class="fas fa-graduation-cap" title="Education"></i>
+                <i class="fas fa-book-reader" title="Study"></i>
+                <i class="fas fa-video" title="Video Lectures"></i>
+                <i class="fas fa-certificate" title="Certification"></i>
+                <i class="fas fa-brain" title="Learning"></i>
             </div>
         </div>
         <div class="container">
@@ -237,12 +253,15 @@ $testimonials = $pdo->query("SELECT * FROM testimonials WHERE status = 'approved
             </h2>
             <div class="lectures-grid">
                 <?php foreach ($recorded_lectures as $lecture): ?>
+                    <?php $hasAccess = in_array($lecture['id'], $user_videos); ?>
                     <div class="lecture-card animate-fade-up">
                         <div class="lecture-thumbnail">
-                            <div class="locked-overlay">
-                                <i class="fas fa-lock"></i>
-                                <span>Premium Content</span>
-                            </div>
+                            <?php if (!$hasAccess): ?>
+                                <div class="locked-overlay">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Premium Content</span>
+                                </div>
+                            <?php endif; ?>
                             <img src="https://images.pexels.com/photos/5905709/pexels-photo-5905709.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop" alt="<?php echo $lecture['title']; ?>">
                         </div>
                         <div class="lecture-info">
@@ -250,10 +269,16 @@ $testimonials = $pdo->query("SELECT * FROM testimonials WHERE status = 'approved
                             <p><?php echo $lecture['description']; ?></p>
                             <div class="lecture-price">
                                 <span class="price">₹<?php echo number_format($lecture['price']); ?></span>
-                                <button class="btn btn-unlock" onclick="unlockVideo(<?php echo $lecture['id']; ?>)">
-                                    <i class="fas fa-unlock"></i>
-                                    Unlock @ ₹<?php echo number_format($lecture['price']); ?>
-                                </button>
+                                <?php if ($hasAccess): ?>
+                                    <a href="user/dashboard.php" class="btn" style="background: var(--success-color); color: white;">
+                                        <i class="fas fa-play"></i> Watch Now
+                                    </a>
+                                <?php else: ?>
+                                    <button class="btn btn-unlock" onclick="unlockVideo(<?php echo $lecture['id']; ?>)">
+                                        <i class="fas fa-unlock"></i>
+                                        Unlock @ ₹<?php echo number_format($lecture['price']); ?>
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

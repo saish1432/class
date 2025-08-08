@@ -82,24 +82,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Video unlock functionality
     window.unlockVideo = function(videoId) {
-        const upiId = 'admin@paytm'; // Get from settings
-        const amount = 99;
-        
-        // Create payment modal or redirect
-        const paymentMessage = `Pay ₹${amount} to unlock this video.\n\nUPI ID: ${upiId}\n\nAfter payment, send screenshot to WhatsApp help for video access.`;
-        
-        if (confirm(paymentMessage)) {
-            // You can integrate with UPI payment gateway here
-            // For now, we'll show instructions
-            alert('Please pay ₹99 via UPI and send payment screenshot to our WhatsApp help number. We will activate your video access within 30 minutes.');
+        // Check if user is logged in
+        <?php if (!isset($_SESSION['user_id'])): ?>
+            if (confirm('You need to register/login to purchase videos. Would you like to register now?')) {
+                window.location.href = 'user/register.php';
+            }
+            return;
+        <?php else: ?>
+            const upiId = '<?php echo $settings['upi_id'] ?? 'admin@paytm'; ?>';
+            const amount = 99;
             
-            // Redirect to WhatsApp for payment confirmation
-            const whatsappNumber = '+919876543210';
-            const whatsappMessage = `I have made payment of ₹99 for video ID: ${videoId}. Please activate my access.`;
-            const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
-            window.open(whatsappURL, '_blank');
+            // Create payment modal or redirect
+            const paymentMessage = `Pay ₹${amount} to unlock this video.\n\nUPI ID: ${upiId}\n\nAfter payment, send screenshot to WhatsApp help for video access.`;
+            
+            if (confirm(paymentMessage)) {
+                // You can integrate with UPI payment gateway here
+                // For now, we'll show instructions
+                alert('Please pay ₹99 via UPI and send payment screenshot to our WhatsApp help number. We will activate your video access within 30 minutes.');
+                
+                // Redirect to WhatsApp for payment confirmation
+                const whatsappNumber = '<?php echo $settings['whatsapp_number'] ?? '+919876543210'; ?>';
+                const whatsappMessage = `I have made payment of ₹99 for video ID: ${videoId}. Please activate my access.\n\nMy registered email: <?php echo $_SESSION['user_email'] ?? ''; ?>`;
+                const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+                window.open(whatsappURL, '_blank');
+            }
+        <?php endif; ?>
         }
-    };
 
     // Testimonial modal functionality
     const testimonialModal = document.getElementById('testimonialModal');
